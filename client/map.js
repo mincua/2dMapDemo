@@ -1,11 +1,9 @@
-var stage;
-var mapLayer;
-var routeLayer;
-var mapX;
-var mapY;
 
 Template.map.onRendered(function () {
-    var zoom = new ZoomView('#zoom', '#zoom :first');
+    $("#zoom").panzoom({
+        minScale: 0.5,
+        maxScale: 3
+    });
 });
 
 Template.map.helpers({
@@ -13,12 +11,30 @@ Template.map.helpers({
     //    return Session.get('counter');
     //}
 });
-var blueLine;
+var activeRoute='';
 
 
 Template.map.events({
-    'click #showMapRoute': function() {
-        $('#route').addClass('active');
+    'click #directionsButton': function() {
+        console.log('Bau hau miau!');
+        var oldActiveRoute=activeRoute;
+        switch(activeRoute) {
+            case '':
+                activeRoute = 'route';
+                break;
+            case 'route':
+                activeRoute = 'route2';
+                break;
+            case 'route2':
+                activeRoute = 'route3';
+                break;
+            case 'route3':
+                activeRoute = 'route';
+                break;
+        }
+        console.log(oldActiveRoute, activeRoute);
+        if (oldActiveRoute) $('#'+oldActiveRoute).removeClass('active');
+        $('#'+activeRoute).addClass('active');
         return false;
     }
     //'click button': function () {
