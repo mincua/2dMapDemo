@@ -30,7 +30,7 @@ DragView = function (target) {
             this.drag[d].el.style.left = left + 'px';
             this.drag[d].el.style.top = top + 'px';
         }
-    }
+    };
 
     this.OnDragStart = function (event) {
         var touches = event.originalEvent.touches || [event.originalEvent];
@@ -52,9 +52,8 @@ DragView = function (target) {
                 };
                 return;
             }
-
         }
-    }
+    };
 
     this.OnDrag = function (event) {
         this.drag = [];
@@ -88,7 +87,7 @@ DragView = function (target) {
 
         }
     }
-}
+};
 
 
 ZoomView = function (container, element) {
@@ -111,6 +110,10 @@ ZoomView = function (container, element) {
 
     var scaleFactor = 0.4;
     var previousScaleFactor = 1;
+
+    var matrix = new paper.Matrix(1, 0, 0, 1, 0, 0);
+    matrix.scale(0.4);
+    console.log(matrix);
 
     //These two variables keep track of the X and Y coordinate of the finger when it first
     //touches the screen
@@ -160,32 +163,37 @@ ZoomView = function (container, element) {
         var el=$(element);
 
         //We save the initial midpoint of the first two touches to say where our transform origin is.
-        e = event
+        e = event;
 
         console.log('element:', getRotationDegrees(el));
         console.log('event:', e.rotation);
 
+
         rotateOrigin = getRotationDegrees(el);
 
-        tch1 = [e.touches[0].x, e.touches[0].y],
-            tch2 = [e.touches[1].x, e.touches[1].y]
+        tch1 = [e.touches[0].x, e.touches[0].y];
+        tch2 = [e.touches[1].x, e.touches[1].y];
 
-        tcX = (tch1[0] + tch2[0]) / 2,
-            tcY = (tch1[1] + tch2[1]) / 2
+        tcX = (tch1[0] + tch2[0]) / 2;
+        tcY = (tch1[1] + tch2[1]) / 2;
 
-        toX = tcX
-        toY = tcY
+        toX = tcX;
+        toY = tcY;
 
         var left = el.offset().left;
         var top = el.offset().top;
 
         cssOrigin = (-(left) + toX) / scaleFactor + "px " + (-(top) + toY) / scaleFactor + "px";
-    })
+    });
 
     container.bind("transform", function (event) {
-        scaleFactor = previousScaleFactor * event.scale;
+        var newScaleFactor = previousScaleFactor * event.scale;
 
-        scaleFactor = Math.max(MIN_ZOOM, Math.min(scaleFactor, MAX_ZOOM));
+        if (newScaleFactor<MIN_ZOOM || newScaleFactor>MAX_ZOOM) {
+            scaleFactor = 0;
+        } else
+            scaleFactor = event.scale;
+        //scaleFactor = Math.max(MIN_ZOOM, Math.min(scaleFactor, MAX_ZOOM));
         transform(event);
     });
 
@@ -206,17 +214,34 @@ ZoomView = function (container, element) {
 
 
     function transform(e) {
-        //We're going to scale the X and Y coordinates by the same amount
-        var cssScale = "scaleX(" + scaleFactor + ") scaleY(" + scaleFactor + ") rotateZ(" + (rotateOrigin+e.rotation) + "deg)";
+
+        //if (scaleFactor!=0)
+            matrix.scale(scaleFactor);
+
+        if (e.rotation!=0)
+            matrix.rotate(e.rotation);
+
+        var cssMatrix='matrix('+matrix.getA()+' ' +matrix.getB() + ' ' + matrix.getC()+
+        ' ' + matrix.getD() + ' ' + matrix.getTx() + ' ' + matrix.getTy()+')';
+
+        console.log(scaleFactor, cssMatrix, matrix);
 
         element.css({
-            webkitTransform: cssScale,
-            webkitTransformOrigin: cssOrigin,
-
-            transform: cssScale,
-            transformOrigin: cssOrigin,
+            webkitTransform: cssMatrix,
+            transform: cssMatrix
         });
 
+        ////We're going to scale the X and Y coordinates by the same amount
+        ////var cssScale = "scaleX(" + scaleFactor + ") scaleY(" + scaleFactor + ") rotateZ(" + (rotateOrigin+e.rotation) + "deg)";
+        //var cssScale = "scaleX(" + scaleFactor + ") scaleY(" + scaleFactor + ") rotateZ(0deg)";
+        //
+        //element.css({
+        //    webkitTransform: cssScale,
+        //    webkitTransformOrigin: cssOrigin,
+        //
+        //    transform: cssScale,
+        //    transformOrigin: cssOrigin
+        //});
 
     }
 
